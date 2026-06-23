@@ -1,0 +1,355 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'style.css' %}" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="{% url 'blog:index' %}" class="logo">
+        <span class="logo-bracket">&gt;_</span>
+        <span class="logo-text">Python</span>
+        <span class="logo-dot">.dev</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#articles">Maqolalar</a>
+        <a href="#categories">Kategoriyalar</a>
+        <a href="#about">Haqida</a>
+        <a href="#newsletter" class="btn-nav">Obuna</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Menyu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#articles">Maqolalar</a>
+      <a href="#categories">Kategoriyalar</a>
+      <a href="#about">Haqida</a>
+      <a href="#newsletter">Obuna</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">python.dev@blog:~$</span>
+        </div>
+        <div class="terminal-body">
+          <p class="t-line"><span class="t-prompt">$</span> python manage.py start_blog</p>
+          <p class="t-line out"><span class="t-green">✓</span> Django 5.x ishga tushdi</p>
+          <p class="t-line out"><span class="t-green">✓</span> Python 3.12 tayyor</p>
+          <p class="t-line out"><span class="t-blue">→</span> Yangi maqolalar yuklanmoqda...</p>
+          <p class="t-line cursor-line"><span class="t-prompt">$</span> <span class="cursor">|</span></p>
+        </div>
+      </div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">Python · Django · Backend</p>
+        <h1 class="hero-title">Kod orqali<br /><em>fikr yuritamiz</em></h1>
+        <p class="hero-desc">
+          Django, FastAPI, DRF, PostgreSQL, Docker va ko'proq — backend dunyosining chuqurliklariga birga sho'ng'iymiz.
+        </p>
+        <div class="hero-cta">
+          <a href="#articles" class="btn-primary">Maqolalarni ko'rish</a>
+          <a href="#categories" class="btn-ghost">Kategoriyalar</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-num">{{ articles_page.paginator.count }}</span>
+            <span class="stat-label">Maqola</span>
+          </div>
+          <div class="stat-div"></div>
+          <div class="stat">
+            <span class="stat-num">{{ categories|length }}</span>
+            <span class="stat-label">Mavzu</span>
+          </div>
+          <div class="stat-div"></div>
+          <div class="stat">
+            <span class="stat-num">1.0k</span>
+            <span class="stat-label">O'quvchi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED -->
+  <section class="featured" id="articles">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag"># featured</span>
+        <h2 class="section-title">Tanlangan maqolalar</h2>
+      </div>
+
+      {% if featured_articles %}
+      <div class="featured-grid">
+        {% for article in featured_articles %}
+        <article class="card {% if forloop.first %}card-featured{% endif %}">
+          <div class="card-tag-row">
+            {% if article.category %}
+              <span class="tag {{ article.category.color }}">{{ article.category.name }}</span>
+            {% endif %}
+            <span class="read-time">{{ article.read_time }} daqiqa</span>
+          </div>
+          {% if forloop.first %}
+            <h2 class="card-title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+          {% else %}
+            <h3 class="card-title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h3>
+          {% endif %}
+          <p class="card-excerpt">{{ article.subtitle }}</p>
+          <div class="card-footer">
+            <div class="author">
+              {% if article.author %}
+                <div class="avatar">{{ article.author.avatar_letter }}</div>
+                <span>{{ article.author }}</span>
+              {% endif %}
+            </div>
+            <span class="date">{{ article.published_at|date:"d M Y" }}</span>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="featured-grid">
+        {% for article in articles_page.object_list|slice:":3" %}
+        <article class="card {% if forloop.first %}card-featured{% endif %}">
+          <div class="card-tag-row">
+            {% if article.category %}
+              <span class="tag {{ article.category.color }}">{{ article.category.name }}</span>
+            {% endif %}
+            <span class="read-time">{{ article.read_time }} daqiqa</span>
+          </div>
+          <h3 class="card-title"><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h3>
+          <p class="card-excerpt">{{ article.subtitle }}</p>
+          <div class="card-footer">
+            <div class="author">
+              {% if article.author %}
+                <div class="avatar">{{ article.author.avatar_letter }}</div>
+                <span>{{ article.author }}</span>
+              {% endif %}
+            </div>
+            <span class="date">{{ article.published_at|date:"d M Y" }}</span>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- ALL ARTICLES -->
+  <section class="all-articles">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag"># latest</span>
+        <h2 class="section-title">
+          {% if active_category %}{{ active_category.name }} maqolalari
+          {% elif active_tag %}#{{ active_tag.name }} tegli maqolalar
+          {% elif search_query %}"{{ search_query }}" bo'yicha natijalar
+          {% else %}Barcha maqolalar{% endif %}
+        </h2>
+      </div>
+
+      <!-- Kategoriya filtrlari -->
+      <div class="filter-row">
+        <a href="{% url 'blog:index' %}" class="filter-btn {% if not active_category %}active{% endif %}">Barchasi</a>
+        {% for cat in categories %}
+          <a href="{% url 'blog:category' cat.slug %}"
+             class="filter-btn {% if active_category.slug == cat.slug %}active{% endif %}">
+            {{ cat.name }}
+          </a>
+        {% endfor %}
+      </div>
+
+      <!-- Qidiruv -->
+      <form method="get" action="{% url 'blog:search' %}" style="margin-bottom:24px; display:flex; gap:10px;">
+        <input type="text" name="q" value="{{ search_query }}"
+               placeholder="Maqola qidirish..." class="nl-input" style="max-width:360px;" />
+        <button type="submit" class="btn-ghost">Qidirish</button>
+      </form>
+
+      <!-- Maqolalar ro'yxati -->
+      <div class="articles-list">
+        {% for article in articles_page %}
+        <article class="list-card" data-category="{{ article.category.slug|default:'' }}">
+
+          <div class="list-left">
+            {% if article.category %}
+              <span class="tag {{ article.category.color }}">{{ article.category.name }}</span>
+            {% endif %}
+            <h3><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h3>
+            <p>{{ article.subtitle }}</p>
+
+            <!-- Meta ma'lumotlar -->
+            <div class="list-meta">
+              {% if article.author %}<span>{{ article.author }}</span>{% endif %}
+              <span>{{ article.published_at|date:"d M Y" }}</span>
+              <span>{{ article.read_time }} daqiqa</span>
+            </div>
+
+            <!-- Vote tugmalari — list-meta dan TASHQARIDA, alohida div -->
+            <div class="card-votes">
+              {% csrf_token %}
+              <button class="vote-btn"
+                      data-url="{% url 'blog:vote_article' article.id %}"
+                      data-type="like">
+                👍 <span class="like-count">{{ article.annotated_likes }}</span>
+              </button>
+              <button class="vote-btn"
+                      data-url="{% url 'blog:vote_article' article.id %}"
+                      data-type="dislike">
+                👎 <span class="dislike-count">{{ article.annotated_dislikes }}</span>
+              </button>
+            </div>
+          </div>
+
+        </article>
+        {% empty %}
+        <div style="text-align:center; padding:60px 0; color:var(--text-muted);">
+          <p style="font-family:var(--font-mono); font-size:1.2rem;">// Maqola topilmadi</p>
+          <p style="margin-top:8px;">Boshqa kalit so'z yoki kategoriya sinab ko'ring.</p>
+          <a href="{% url 'blog:index' %}" class="btn-ghost" style="margin-top:16px; display:inline-block;">Barchasi</a>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if articles_page.has_other_pages %}
+      <div style="display:flex; justify-content:center; gap:8px; margin-top:40px;">
+        {% if articles_page.has_previous %}
+          <a href="?page={{ articles_page.previous_page_number }}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+             class="btn-ghost" style="padding:8px 16px;">← Oldingi</a>
+        {% endif %}
+        {% for num in articles_page.paginator.page_range %}
+          {% if articles_page.number == num %}
+            <span class="btn-primary" style="padding:8px 14px;">{{ num }}</span>
+          {% elif num > articles_page.number|add:'-3' and num < articles_page.number|add:'3' %}
+            <a href="?page={{ num }}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="btn-ghost" style="padding:8px 14px;">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if articles_page.has_next %}
+          <a href="?page={{ articles_page.next_page_number }}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+             class="btn-ghost" style="padding:8px 16px;">Keyingi →</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="categories" id="categories">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag"># categories</span>
+        <h2 class="section-title">Kategoriyalar</h2>
+      </div>
+      <div class="cat-grid">
+        {% for cat in categories %}
+        <a href="{% url 'blog:category' cat.slug %}" class="cat-card">
+          <div class="cat-icon">
+            {% if cat.slug == 'django' %}🎸
+            {% elif cat.slug == 'python' %}🐍
+            {% elif cat.slug == 'drf' or cat.slug == 'fastapi' %}⚡
+            {% elif cat.slug == 'postgresql' %}🗄️
+            {% elif cat.slug == 'docker' %}🐳
+            {% else %}📄{% endif %}
+          </div>
+          <h3>{{ cat.name }}</h3>
+          <p>{{ cat.article_count }} ta nashr etilgan maqola</p>
+          <span class="cat-count">{{ cat.article_count }} maqola</span>
+        </a>
+        {% empty %}
+          <p style="color:var(--text-muted);">Kategoriyalar hali qo'shilmagan.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="container about-inner">
+      <div class="about-text">
+        <span class="section-tag"># about</span>
+        <h2>Kim yozadi?</h2>
+        <p>Men — backend ishlab chiqaruvchi dasturchi. Har kuni Python va Django bilan ishlagan tajribamni maqolalar orqali ulashib boraman.</p>
+        <p>Maqolalar amaliy tajribadan kelib chiqadi — tutorial emas, haqiqiy loyihalardagi muammolar va yechimlar.</p>
+        <div class="authors-row">
+          <div class="author-card">
+            <div class="av-lg">M</div>
+            <div><strong>Muhammadnur K.</strong><br /><small>Python · Django</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="about-visual">
+        <div class="code-block-big">
+          <div class="cb-bar">
+            <span class="t-dot red"></span><span class="t-dot yellow"></span><span class="t-dot green"></span>
+            <span style="margin-left:8px; font-size:12px; color:#8B949E">about.py</span>
+          </div>
+          <pre><code><span class="kw">class</span> <span class="fn">PythonDev</span>:
+  <span class="str">"""Python va Django haqida
+  chuqur va amaliy blog."""</span>
+
+  author <span class="op">=</span> [<span class="str">'Muhammadnur'</span>]
+  topics <span class="op">=</span> [<span class="str">'Django'</span>, <span class="str">'Python'</span>]
+
+  <span class="kw">def</span> <span class="fn">mission</span>(self):
+    <span class="kw">return</span> <span class="str">"Bilimni ulashish"</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="newsletter" id="newsletter">
+    <div class="container newsletter-inner">
+      <div class="nl-text">
+        <span class="section-tag"># subscribe</span>
+        <h2>Yangi maqolalardan xabardor bo'ling</h2>
+        <p>Har hafta inbox'ingizga Python va Django yangiliklari.</p>
+      </div>
+      <div>
+        <form id="nl-form" class="nl-form">
+          {% csrf_token %}
+          <input type="email" name="email" placeholder="email@example.com" class="nl-input" required />
+          <button type="submit" class="btn-primary">Obuna bo'lish</button>
+        </form>
+        <p class="nl-note" id="nlMessage"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-logo">
+        <span class="logo-bracket">&gt;_</span>
+        <span class="logo-text">Python</span>
+        <span class="logo-dot">.dev</span>
+      </div>
+      <p class="footer-copy">© {% now "Y" %} Python.dev — Python sevuvchilar uchun.</p>
+      <div class="footer-links">
+        <a href="https://www.instagram.com/style_km1.v_" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://t.me/thebckndder" target="_blank" rel="noopener">Telegram</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'main.js' %}"></script>
+</body>
+</html>

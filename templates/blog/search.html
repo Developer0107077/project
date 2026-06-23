@@ -1,0 +1,288 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    {% if query %}"{{ query }}" qidirish natijasi{% else %}Qidirish{% endif %} — Python.dev
+  </title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'style.css' %}" />
+
+  <style>
+    .search-hero-form {
+      display: flex;
+      gap: 12px;
+      max-width: 600px;
+      margin-top: 28px;
+    }
+    .search-hero-input {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      padding: 12px 18px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .search-hero-input:focus {
+      border-color: var(--accent-blue);
+    }
+    .search-hero-input::placeholder {
+      color: var(--text-muted);
+    }
+    .result-highlight {
+      background: rgba(88,166,255,0.15);
+      color: var(--accent-blue);
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+    .search-tags-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .search-image-thumb {
+      width: 80px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="{% url 'blog:index' %}" class="logo">
+        <span class="logo-bracket">&gt;_</span>
+        <span class="logo-text">Python</span>
+        <span class="logo-dot">.dev</span>
+      </a>
+      <nav class="nav-links">
+        <a href="{% url 'blog:index' %}#articles">Maqolalar</a>
+        <a href="{% url 'blog:index' %}#categories">Kategoriyalar</a>
+        <a href="{% url 'blog:index' %}#about">Haqida</a>
+        <a href="{% url 'blog:index' %}#newsletter" class="btn-nav">Obuna</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Menyu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="{% url 'blog:index' %}#articles">Maqolalar</a>
+      <a href="{% url 'blog:index' %}#categories">Kategoriyalar</a>
+      <a href="{% url 'blog:index' %}#about">Haqida</a>
+      <a href="{% url 'blog:index' %}#newsletter">Obuna</a>
+    </div>
+  </header>
+
+  <!-- SEARCH HERO -->
+  <section style="padding-top: calc(var(--nav-h) + 60px); padding-bottom: 48px; border-bottom: 1px solid var(--border-light);">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="{% url 'blog:index' %}">Bosh sahifa</a>
+        <span>/</span>
+        <span>Qidirish</span>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <span class="section-tag"># search</span>
+        <h1 style="font-family: var(--font-mono); font-size: clamp(1.5rem,3vw,2rem); font-weight:700; color:var(--text); margin-top:6px;">
+          {% if query %}
+            <span style="color:var(--text-muted);">qidiruv:</span> "{{ query }}"
+          {% else %}
+            Maqola qidirish
+          {% endif %}
+        </h1>
+        {% if query %}
+          <p style="color:var(--text-secondary); margin-top:8px;">
+            {% if result_count %}
+              <span style="color:var(--accent-green); font-family:var(--font-mono); font-weight:600;">{{ result_count }}</span> ta natija topildi
+            {% else %}
+              Hech narsa topilmadi. Boshqa so'z sinab ko'ring.
+            {% endif %}
+          </p>
+        {% endif %}
+      </div>
+
+      <!-- Qidiruv formasi -->
+      <form method="get" action="{% url 'blog:search' %}" class="search-hero-form">
+        {% csrf_token %}
+        <input
+          type="text"
+          name="q"
+          value="{{ query }}"
+          placeholder="Django, Python, DRF..."
+          class="search-hero-input"
+          autofocus
+        />
+        <button type="submit" class="btn-primary" style="white-space:nowrap;">Qidirish</button>
+      </form>
+
+      <!-- Teg filtrlari -->
+      {% if tags %}
+      <div class="search-tags-row">
+        <span style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text-muted);"># teglar:</span>
+        {% for tag in tags %}
+          <a href="{% url 'blog:search' %}?q={{ tag.name }}" class="tag">{{ tag.name }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- NATIJALAR -->
+  <section class="all-articles" style="border-top:none;">
+    <div class="container">
+
+      {% if query %}
+
+        {% if articles_page.object_list %}
+          <div class="list-grid">
+            {% for article in articles_page %}
+              <article class="list-card">
+                <div class="list-main">
+                  <div class="card-tag-row">
+                    {% if article.category %}
+                      <span class="tag {{ article.category.color }}">{{ article.category.name }}</span>
+                    {% endif %}
+                    <span class="read-time">{{ article.read_time }} daqiqa</span>
+                    <span class="date" style="margin-left:auto;">{{ article.published_at|date:"d M Y" }}</span>
+                  </div>
+
+                  <h2 class="card-title" style="font-size:1.1rem; margin-top:10px;">
+                    <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+                  </h2>
+                  <p class="card-excerpt">{{ article.subtitle }}</p>
+
+                  <!-- Teglar -->
+                  {% if article.tags.all %}
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
+                    {% for tag in article.tags.all %}
+                      <a href="{% url 'blog:search' %}?q={{ tag.name }}" class="tag" style="font-size:0.68rem;">
+                        #{{ tag.name }}
+                      </a>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+
+                  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:14px;">
+                    <div class="author">
+                      {% if article.author %}
+                        <div class="avatar">{{ article.author.avatar_letter }}</div>
+                        <span style="font-size:0.85rem; color:var(--text-secondary);">{{ article.author }}</span>
+                      {% endif %}
+                    </div>
+                    <a href="{{ article.get_absolute_url }}" class="btn-ghost" style="padding:5px 14px; font-size:0.8rem;">
+                      O'qish →
+                    </a>
+                  </div>
+                </div>
+
+                {% if article.image %}
+                  <div style="display:flex; align-items:flex-start; padding:16px 0 16px 16px; flex-shrink:0;">
+                    <img src="{{ article.image.url }}" alt="{{ article.title }}" class="search-image-thumb" />
+                  </div>
+                {% elif article.code_snippet %}
+                  <div class="list-code">
+                    <pre><code>{{ article.code_snippet }}</code></pre>
+                  </div>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+
+          <!-- PAGINATION -->
+          {% if articles_page.has_other_pages %}
+          <div class="pagination" style="display:flex; justify-content:center; gap:8px; margin-top:40px;">
+            {% if articles_page.has_previous %}
+              <a href="?q={{ query }}&page={{ articles_page.previous_page_number }}"
+                 class="btn-ghost" style="padding:8px 16px;">← Oldingi</a>
+            {% endif %}
+
+            {% for num in articles_page.paginator.page_range %}
+              {% if articles_page.number == num %}
+                <span class="btn-primary" style="padding:8px 14px;">{{ num }}</span>
+              {% elif num > articles_page.number|add:'-3' and num < articles_page.number|add:'3' %}
+                <a href="?q={{ query }}&page={{ num }}"
+                   class="btn-ghost" style="padding:8px 14px;">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if articles_page.has_next %}
+              <a href="?q={{ query }}&page={{ articles_page.next_page_number }}"
+                 class="btn-ghost" style="padding:8px 16px;">Keyingi →</a>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        {% else %}
+          <!-- Natija yo'q -->
+          <div style="text-align:center; padding:80px 0;">
+            <div style="font-family:var(--font-mono); font-size:3rem; margin-bottom:16px;">🔍</div>
+            <p style="font-family:var(--font-mono); font-size:1.1rem; color:var(--text-muted);">
+              // "{{ query }}" bo'yicha natija topilmadi
+            </p>
+            <p style="color:var(--text-muted); margin-top:10px; font-size:0.9rem;">
+              Imlo xatolarini tekshiring yoki qisqaroq so'z sinab ko'ring.
+            </p>
+            <div style="margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+              <a href="{% url 'blog:index' %}" class="btn-ghost">← Bosh sahifa</a>
+              <a href="{% url 'blog:search' %}" class="btn-primary">Yangi qidiruv</a>
+            </div>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <!-- Query bo'sh — mashhur teglarni ko'rsat -->
+        <div style="text-align:center; padding:60px 0;">
+          <p style="font-family:var(--font-mono); color:var(--text-muted); font-size:1rem;">
+            // Qidiruv so'zini kiriting
+          </p>
+          {% if tags %}
+          <div style="margin-top:24px;">
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:12px;">Mashhur teglar:</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+              {% for tag in tags %}
+                <a href="{% url 'blog:search' %}?q={{ tag.name }}" class="tag">#{{ tag.name }}</a>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-logo">
+        <span class="logo-bracket">&gt;_</span>
+        <span class="logo-text">Python</span>
+        <span class="logo-dot">.dev</span>
+      </div>
+      <p class="footer-copy">© {% now "Y" %} Python.dev — Python sevuvchilar uchun.</p>
+      <div class="footer-links">
+        <a href="https://www.instagram.com/style_km1.v_" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://t.me/thebckndder" target="_blank" rel="noopener">Telegram</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'main.js' %}"></script>
+</body>
+</html>

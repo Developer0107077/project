@@ -1,0 +1,345 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ article.title }} — Python.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'style.css' %}" />
+
+  <style>
+    /* HERO: matn va rasm yonma-yon */
+    .hero-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 40px;
+    }
+    .hero-text-side { flex: 1; }
+    .hero-image-side {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+    .hero-image-side .hero-image-box {
+      width: 100%;
+      max-width: 450px;
+      height: 280px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .hero-image-side img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+    @media (max-width: 768px) {
+      .hero-grid { flex-direction: column; align-items: flex-start; gap: 24px; }
+      .hero-image-side { width: 100%; }
+      .hero-image-side .hero-image-box { width: 100%; height: 220px; padding: 14px; }
+    }
+    /* Rasm yo'q bo'lganda matn to'liq kenglikni egallaydi */
+    .hero-grid.no-image .hero-text-side { flex: 1 1 100%; max-width: 100%; }
+
+  
+    /* Matn scroll */
+  .article-text-scrollable {
+    max-height: 500px; /* Agar matn balandligi 500px dan oshsa, ichki scroll paydo bo'ladi */
+    overflow-y: auto;
+    padding-right: 16px;
+    scroll-behavior: smooth;
+    
+    /* Sahifa scroll bo'lib ketishini mutlaqo taqiqlash */
+    overscroll-behavior-y: contain; 
+    touch-action: pan-y; 
+  }
+    .article-text-scrollable::-webkit-scrollbar { width: 7px; }
+    .article-text-scrollable::-webkit-scrollbar-track { background: #0d1117; border-radius: 4px; }
+    .article-text-scrollable::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+    .article-text-scrollable::-webkit-scrollbar-thumb:hover { background: #8b949e; }
+    .article-text-scrollable { scrollbar-width: thin; scrollbar-color: #30363d #0d1117; }
+
+    /* Maqola matni ichidagi rasmlar — kontainerdan kattaroq chiqib ketmasligi uchun */
+    .article-text-scrollable img,
+    .article-content img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 16px auto;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="{% url 'blog:index' %}" class="logo">
+        <span class="logo-bracket">&gt;_</span>
+        <span class="logo-text">Python</span>
+        <span class="logo-dot">.dev</span>
+      </a>
+      <nav class="nav-links">
+        <a href="{% url 'blog:index' %}#articles">Maqolalar</a>
+        <a href="{% url 'blog:index' %}#categories">Kategoriyalar</a>
+        <a href="{% url 'blog:index' %}#about">Haqida</a>
+        <a href="{% url 'blog:index' %}#newsletter" class="btn-nav">Obuna</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Menyu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="{% url 'blog:index' %}#articles">Maqolalar</a>
+      <a href="{% url 'blog:index' %}#categories">Kategoriyalar</a>
+      <a href="{% url 'blog:index' %}#about">Haqida</a>
+      <a href="{% url 'blog:index' %}#newsletter">Obuna</a>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="container" style="margin-top: 20px;">
+      {% for message in messages %}
+        <div class="callout callout-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- CSRF token (vote AJAX uchun) -->
+  {% csrf_token %}
+
+  <!-- HERO -->
+  <section class="article-hero">
+    <div class="container hero-grid">
+
+      <div class="hero-text-side">
+        <div class="breadcrumb">
+          <a href="{% url 'blog:index' %}">Bosh sahifa</a>
+          <span>/</span>
+          <a href="{% url 'blog:index' %}#articles">Maqolalar</a>
+          <span>/</span>
+          <span>{{ article.category.name }}</span>
+        </div>
+        <div class="article-meta-top">
+          <span class="tag {{ article.category.color }}">{{ article.category.name }}</span>
+          <span class="read-time">{{ article.read_time }} daqiqa o'qish</span>
+          <span class="date">{{ article.published_at|date:"d E Y" }}</span>
+          <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">
+            👁 {{ article.views_count }}
+          </span>
+        </div>
+        <h1 class="article-title">{{ article.title }}</h1>
+        <p class="article-subtitle">{{ article.subtitle }}</p>
+        <div class="article-author-row">
+          <div class="avatar av-md">{{ article.author.avatar_letter }}</div>
+          <div>
+            <strong>{{ article.author }}</strong>
+            <p class="author-role">{{ article.author.role }}</p>
+          </div>
+        </div>
+      </div>
+
+      {% if article.image and article.image.name %}
+      <div class="hero-image-side" id="heroImageSide">
+        <div class="hero-image-box">
+          <img
+            src="{{ article.image.url }}"
+            alt="{{ article.title }}"
+            onerror="this.closest('#heroImageSide').remove(); document.querySelector('.hero-grid')?.classList.add('no-image');"
+          />
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- LAYOUT: TOC + CONTENT -->
+  <div class="article-layout container">
+    <aside class="article-toc" id="toc">
+      <div class="toc-sticky">
+        <p class="toc-title">Mundarija</p>
+        <ul class="toc-list" id="tocList">
+          <li><a href="#intro" class="toc-active">Maqola matni</a></li>
+        </ul>
+        {% if article.code_snippet %}
+          <div class="toc-progress">
+            <div class="toc-progress-bar" id="progressBar"></div>
+          </div>
+        {% endif %}
+      </div>
+    </aside>
+
+    <article class="article-content">
+      <section id="intro">
+
+        <div class="article-text-scrollable">
+          {{ article.content|linebreaks }}
+        </div>
+
+        {% if article.code_snippet %}
+          <div class="code-block" style="margin-top:24px; margin-bottom:24px;">
+            <div class="code-header" style="cursor:pointer;" id="toggleCodeBtn">
+              <span class="code-lang">{{ article.code_snippet_lang|default:"python" }}</span>
+              <span class="code-file" style="flex:1;">kod namunasi</span>
+              <span id="accordionArrow" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); transition:transform 0.2s ease; display:inline-block;">▶ ko'rish</span>
+            </div>
+            <div id="codeSnippetWrapper" style="max-height:0; overflow:hidden; transition:max-height 0.35s ease-out;">
+              <pre style="margin:0; padding:20px 24px; overflow-x:auto;"><code style="font-family:var(--font-mono); color:#c9d1d9; font-size:0.875rem; white-space:pre; line-height:1.7;">{{ article.code_snippet }}</code></pre>
+            </div>
+          </div>
+        {% endif %}
+
+      </section>
+
+      <!-- TEGLAR -->
+      <div class="article-tags">
+        <span>Teglar:</span>
+        {% for tag in article.tags.all %}
+          <a href="{% url 'blog:tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+        {% empty %}
+          <span style="color:var(--text-muted); font-size:0.85rem;">Teg yo'q</span>
+        {% endfor %}
+      </div>
+
+      <!-- MUALLIF BIO -->
+      <div class="author-bio">
+        <div class="av-lg">{{ article.author.avatar_letter }}</div>
+        <div class="bio-text">
+          <strong>{{ article.author }}</strong>
+          <span class="author-role">{{ article.author.role }}</span>
+          <p>{{ article.author.bio }}</p>
+          {% if article.author.telegram_url or article.author.instagram_url %}
+            <div style="margin-top:10px; display:flex; gap:12px;">
+              {% if article.author.telegram_url %}
+                <a href="{{ article.author.telegram_url }}" target="_blank" rel="noopener">Telegram</a>
+              {% endif %}
+              {% if article.author.instagram_url %}
+                <a href="{{ article.author.instagram_url }}" target="_blank" rel="noopener">Instagram</a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ULASHISH -->
+      <div class="share-row" style="margin-bottom:20px;">
+        <span>Ulashing:</span>
+        <button class="share-btn" onclick="window.open('https://t.me/share/url?url='+encodeURIComponent(window.location.href)+'&text='+encodeURIComponent('{{ article.title }}'))">
+          Telegram
+        </button>
+        <button class="share-btn" onclick="window.open('https://twitter.com/intent/tweet?url='+encodeURIComponent(window.location.href)+'&text='+encodeURIComponent('{{ article.title }}'))">
+          Twitter/X
+        </button>
+        <button class="share-btn" id="copyLinkBtn" onclick="copyPageLink(this)">
+          Havolani nusxalash
+        </button>
+      </div>
+
+      <!-- OVOZ BERISH -->
+      <div class="vote-row" id="voteRow">
+        {# data-url — backend URL; data-type — 'like' yoki 'dislike' #}
+        <button
+          class="vote-btn {% if user_vote == 'like' %}active{% endif %}"
+          data-type="like"
+          data-url="{% url 'blog:vote_article' article.id %}"
+        >
+          👍 Foydali (<span id="like-count">{{ likes_count }}</span>)
+        </button>
+        <button
+          class="vote-btn {% if user_vote == 'dislike' %}active{% endif %}"
+          data-type="dislike"
+          data-url="{% url 'blog:vote_article' article.id %}"
+        >
+          👎 Tushunarsiz (<span id="dislike-count">{{ dislikes_count }}</span>)
+        </button>
+      </div>
+
+    </article>
+  </div>
+
+  <!-- O'XSHASH MAQOLALAR -->
+  <section class="related-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag"># related</span>
+        <h2 class="section-title">O'xshash maqolalar</h2>
+      </div>
+      <div class="related-grid">
+        {% for rel in related_articles %}
+          <article class="card">
+            <div class="card-tag-row">
+              <span class="tag {{ rel.category.color }}">{{ rel.category.name }}</span>
+              <span class="read-time">{{ rel.read_time }} daqiqa</span>
+            </div>
+            <h3 class="card-title">
+              <a href="{{ rel.get_absolute_url }}">{{ rel.title }}</a>
+            </h3>
+            <p class="card-excerpt">{{ rel.subtitle }}</p>
+            <div class="card-footer">
+              <div class="author">
+                <div class="avatar">{{ rel.author.avatar_letter }}</div>
+                <span>{{ rel.author }}</span>
+              </div>
+              <span class="date">{{ rel.published_at|date:"d M Y" }}</span>
+            </div>
+          </article>
+        {% empty %}
+          <p style="color:var(--text-muted);">O'xshash maqolalar topilmadi.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-logo">
+        <span class="logo-bracket">&gt;_</span>
+        <span class="logo-text">Python</span>
+        <span class="logo-dot">.dev</span>
+      </div>
+      <p class="footer-copy">© {% now "Y" %} Python.dev — Python sevuvchilar uchun.</p>
+      <div class="footer-links">
+        <a href="https://www.instagram.com/style_km1.v_" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://t.me/thebckndder" target="_blank" rel="noopener">Telegram</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'main.js' %}"></script>
+  <script>
+    // ACCORDION (kod ko'rsatish/yashirish) va VOTE handlerlari main.js da bor.
+    // Bu yerda takror qo'shilmaydi — ikkita listener bir vaqtda ishlaganda
+    // accordion ochiladi-yopiladi (effekt yo'qolib qoladi) va arrow noto'g'ri aylanadi.
+
+    // Havolani nusxalash
+    function copyPageLink(btn) {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Nusxalandi ✓';
+        btn.style.color = 'var(--accent-green)';
+        btn.style.borderColor = 'var(--accent-green)';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
