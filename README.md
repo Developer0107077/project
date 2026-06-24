@@ -63,12 +63,12 @@ Ma'lumotlar bazasidagi jadvallarni belgilaydi. Har bir `class` — bitta jadval.
 ### `Category` — Kategoriya
 ```python
 class Category(models.Model):
-    name  = models.CharField(max_length=100)   # Kategoriya nomi 
-    slug  = models.SlugField(unique=True)      # URL uchun qisqa nom
-    color = models.CharField(max_length=20)    # CSS klassi
+    name  = models.CharField(max_length=100)   # Kategoriya nomi (masalan: "Django")
+    slug  = models.SlugField(unique=True)      # URL uchun qisqa nom: "django"
+    color = models.CharField(max_length=20)    # CSS klassi: "tag-django"
 ```
 **Vazifasi:** Maqolalarni guruhlaydi. Har bir maqola bitta kategoriyaga tegishli.  
-**`save()` metodi:** Agar `slug` bo'sh bo'lsa, nomdan avtomatik hosil qiladi
+**`save()` metodi:** Agar `slug` bo'sh bo'lsa, nomdan avtomatik hosil qiladi (`"Django Tips"` → `"django-tips"`).
 
 ---
 
@@ -76,7 +76,7 @@ class Category(models.Model):
 ```python
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)  # Teg nomi
-    slug = models.SlugField(unique=True)                  # URL uchun
+    slug = models.SlugField(unique=True)                  # URL uchun: "postgresql"
 ```
 **Vazifasi:** Maqolaga bir nechta kalit so'z qo'shish imkonini beradi. Bitta maqolada ko'p teg bo'lishi mumkin.
 
@@ -87,8 +87,8 @@ class Tag(models.Model):
 class Author(models.Model):
     user          = models.OneToOneField(User, ...)   # Django foydalanuvchisi bilan bog'liq
     bio           = models.TextField()                # Muallif haqida matn
-    avatar_letter = models.CharField(max_length=1)    # Avatar harfi 
-    role          = models.CharField(max_length=100)  # Lavozim
+    avatar_letter = models.CharField(max_length=1)   # Avatar harfi (masalan: "A")
+    role          = models.CharField(max_length=100)  # Lavozim: "Senior Django Developer"
     instagram_url = models.URLField()                 # Instagram havolasi
     telegram_url  = models.URLField()                 # Telegram havolasi
 ```
@@ -100,25 +100,25 @@ class Author(models.Model):
 ### `Article` — Maqola (asosiy model)
 ```python
 class Article(models.Model):
-    title        = models.CharField(max_length=250)                     # Sarlavha
-    slug         = models.SlugField(unique=True)                        # URL
-    subtitle     = models.CharField(max_length=350)                     # Qisqa tavsif
-    image        = models.ImageField(upload_to='articles/%Y/%m/%d/')    # Rasm
-    content      = models.TextField()                                   # Asosiy mazmun 
-code_snippet = models.TextField()                                   # Kartada ko'rinadigan kod namunasi
-    author       = models.ForeignKey(Author, ...)                       # Muallif 
-    category     = models.ForeignKey(Category, ...)                     # Kategoriya 
-    tags         = models.ManyToManyField(Tag, ...)                     # Teglar 
-    status       = models.CharField(choices=STATUS_CHOICES)             # "draft" yoki "published"
-    is_featured  = models.BooleanField(default=False)                   # Tanlangan maqolami?
-read_time    = models.PositiveSmallIntegerField()                       # O'qish vaqti 
-    views_count  = models.PositiveIntegerField(default=0)               # Ko'rishlar soni
-    published_at = models.DateTimeField()                               # Nashr sanasi
+    title        = models.CharField(max_length=250)     # Sarlavha
+    slug         = models.SlugField(unique=True)         # URL: "django-orm-guide"
+    subtitle     = models.CharField(max_length=350)      # Qisqa tavsif
+    image        = models.ImageField(upload_to='articles/%Y/%m/%d/')  # Rasm
+    content      = models.TextField()                    # Asosiy mazmun (HTML)
+    code_snippet = models.TextField()                    # Kartada ko'rinadigan kod namunasi
+    author       = models.ForeignKey(Author, ...)        # Muallif (ForeignKey)
+    category     = models.ForeignKey(Category, ...)      # Kategoriya (ForeignKey)
+    tags         = models.ManyToManyField(Tag, ...)      # Teglar (ko'p-ko'p bog'lanish)
+    status       = models.CharField(choices=STATUS_CHOICES)  # "draft" yoki "published"
+    is_featured  = models.BooleanField(default=False)    # Tanlangan maqolami?
+    read_time    = models.PositiveSmallIntegerField()    # O'qish vaqti (daqiqa)
+    views_count  = models.PositiveIntegerField(default=0) # Ko'rishlar soni
+    published_at = models.DateTimeField()                # Nashr sanasi
 ```
 
 **Muhim metodlar:**
-- `increment_views()` — Ko'rishlar sonini +1 qiladi 
-- `is_published` property — Maqola nashr etilganmi?
+- `increment_views()` — Ko'rishlar sonini +1 qiladi (F() expression bilan — xavfsiz)
+- `is_published` property — Maqola nashr etilganmi? (`True`/`False`)
 - `get_absolute_url()` — Maqola havolasini qaytaradi
 
 **Indekslar (tezlashtirish uchun):**
@@ -135,14 +135,14 @@ indexes = [
 ### `Vote` — Ovoz (Like/Dislike)
 ```python
 class Vote(models.Model):
-    article    = models.ForeignKey(Article, ...)                            # Qaysi maqola
-ip_address = models.GenericIPAddressField()                                 # Foydalanuvchi IP manzili
+    article    = models.ForeignKey(Article, ...)       # Qaysi maqola
+    ip_address = models.GenericIPAddressField()        # Foydalanuvchi IP manzili
     vote_type  = models.CharField(choices=[('like','Like'), ('dislike','Dislike')])
     
     class Meta:
         unique_together = ('article', 'ip_address')    # Bir IP — bitta ovoz
 ```
-**Vazifasi:** Har bir foydalanuvchi  bitta maqolaga faqat bir marta ovoz bera oladi.
+**Vazifasi:** Har bir foydalanuvchi (IP bo'yicha) bitta maqolaga faqat bir marta ovoz bera oladi.
 
 ---
 
@@ -155,7 +155,7 @@ urlpatterns = [
     path("", include("blog.urls")),            # Barcha blog URL'lari
 ]
 ```
-**Vazifasi:** Kirgan so'rovni to'g'ri joyga yo'naltiradi. 
+**Vazifasi:** Kirgan so'rovni to'g'ri joyga yo'naltiradi. `/admin/` → admin paneliga, qolganlari → blog ilovasiga.
 
 ### `blog/urls.py` — Blog URL'lari
 | URL | View | Nomi |
@@ -172,6 +172,7 @@ urlpatterns = [
 
 ## 👁️ Backend — Views (views.py)
 
+Har bir view — bitta sahifa yoki API endpoint.
 
 ### `_base_context()` — Yordamchi funksiya
 ```python
@@ -283,11 +284,11 @@ Ovoz berdi?
 
 ### `article_detail.html` — Maqola sahifasi
 **Tarkibi:**
-- **Sarlavha + rasm** — yonma-yon joylashtirilgan (flex layout)
-- **Maqola matni** — ichida scroll bor (max-height: 500px)
-- **Kod snippet** — accordion (yashirin/ko'rinadigan)
-- **Like/Dislike tugmalari** — AJAX bilan ishlaydi
-- **O'xshash maqolalar** — shu kategoriyadan yana 3 ta
+- **Sarlavha + rasm** —         yonma-yon joylashtirilgan (flex layout)
+- **Maqola matni** —            ichida scroll bor (max-height: 500px)
+- **Kod snippet** —             accordion (yashirin/ko'rinadigan)
+- **Like/Dislike tugmalari** —  AJAX bilan ishlaydi
+- **O'xshash maqolalar** —      shu kategoriyadan yana 3 ta
 
 ---
 
@@ -334,12 +335,12 @@ Django admin panelini sozlaydi — ma'lumotlarni qulay boshqarish uchun.
 ## 🌐 URL → Sahifa xaritasi
 
 ```
-http://localhost:8000/                          → Bosh sahifa (maqolalar ro'yxati)
-http://localhost:8000/article/django-orm-guide/ → Maqola sahifasi
-http://localhost:8000/category/django/          → Kategoriya sahifasi
-http://localhost:8000/tag/postgresql/           → Teg sahifasi
-http://localhost:8000/search/?q=django          → Qidiruv natijalari
-http://localhost:8000/admin/                    → Admin panel
+http://localhost:8000/                                  → Bosh sahifa (maqolalar ro'yxati)
+http://localhost:8000/article/django-orm-guide/         → Maqola sahifasi
+http://localhost:8000/category/django/                  → Kategoriya sahifasi
+http://localhost:8000/tag/postgresql/                   → Teg sahifasi
+http://localhost:8000/search/?q=django                  → Qidiruv natijalari
+http://localhost:8000/admin/                            → Admin panel
 ```
 
 ---
@@ -362,4 +363,123 @@ HTML sahifa foydalanuvchiga qaytariladi
 main.js ishlaydi — interaktivlik (filtr, AJAX, menyu)
 ```
 
+---                                                                         
+
+
+
+                                        BY MYSELF
+
+# slug nima ?
+
+✅ URL chiroyli va tushunarli bo‘ladi
+✅ SEO (Google qidiruvi) uchun foydali
+✅ ID o‘rniga matn bilan sahifa topiladi
+✅ Foydalanuvchi linkdan nimani ochayotganini tushunadi.
+
+
+## Sarlavha: 
+     
+     Python asoslari.
+
+## Slug:
+
+    python-asoslari.
+
 ---
+
+# Tag - Teg:
+
+Bu ma’lumotni kategoriya yoki kalit so‘z bilan belgilash uchun ishlatiladi.
+
+---
+
+# PositiveSmallIntegerField()
+Kichikroq musbat sonlarni saqlaydi:
+
+```
+0
+10
+150
+30000
+```
+
+# PositiveIntegerField()
+Kattaroq musbat sonlarni saqlaydi:
+
+```
+0
+500
+100000
+2000000
+```
+
+---
+
+# F() expression
+
+Djangoda F() expression — bazadagi qiymat ustida to‘g‘ridan-to‘g‘ri amal bajarish uchun ishlatiladi. Ya’ni Python ichiga olib kelmasdan SQL darajasida hisoblaydi.
+
+---
+
+# .annotade()
+
+Django’da .annotate() — query natijasiga yangi hisoblangan maydon qo‘shish uchun ishlatiladi.
+
+## Masalan: har bir maqolada nechta komment borligini chiqarish.
+
+---
+
+```python
+
+if not request.session.get(session_key):
+
+```
+
+## Shu foydalanuvchi oldin shu maqolani ko‘rganmi?
+
+Agar yo‘q → None qaytadi → True
+Agar ha → True qaytadi → if ishlamaydi
+
+---
+
+# WSGI va ASGI nima?
+
+Django’da WSGI va ASGI — bu Django ilovangizni server bilan bog‘laydigan kirish nuqtasi (entry point).
+
+Brauzer → Server → WSGI/ASGI → Django
+
+## WSGI (Web Server Gateway Interface): "Veb server shlyuz interfeysi"
+
+Oddiy HTTP so‘rovlar uchun.
+
+
+### Ko‘proq:
+Django
+Flask
+Apache
+Gunicorn
+ishlatadi.
+
+
+## ASGI (Asynchronius Server Gateway Interface): "Asinxron veb server shlyuz interfeysi"
+
+Bu yangiroq va async ishlashni qo‘llaydi.
+
+
+### Kerak bo‘ladi:
+WebSocket
+Real-time chat
+Notification
+Async view
+Ko‘p ulanishlar
+
+
+---
+
+# is_valid()
+
+Django’da is_valid() — forma (Form) yoki serializer ichidagi ma’lumot to‘g‘ri kirganini tekshiradi
+
+
+---
+
